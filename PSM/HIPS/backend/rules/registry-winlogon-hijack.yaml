@@ -1,0 +1,52 @@
+rule:
+  id: "registry-winlogon-hijack"
+  name: "Winlogon Key Hijacking"
+  description: "Detects modification of Userinit, Shell, or TaskMan values in the Winlogon key — replacing these with a malicious binary gives execution at every user login"
+  enabled: true
+  severity: "high"
+  category: "persistence"
+
+  conditions:
+    event_type: "registry_change"
+    platform:
+      - "windows"
+
+    all:
+      - field: "registry_key"
+        operator: "regex"
+        value: "(?i)HKLM\\\\SOFTWARE\\\\Microsoft\\\\Windows NT\\\\CurrentVersion\\\\Winlogon"
+
+      - field: "registry_operation"
+        operator: "in"
+        value: ["value_create", "value_modify"]
+
+    any:
+      - field: "registry_value"
+        operator: "equals"
+        value: "Userinit"
+
+      - field: "registry_value"
+        operator: "equals"
+        value: "Shell"
+
+      - field: "registry_value"
+        operator: "equals"
+        value: "TaskMan"
+
+      - field: "registry_value"
+        operator: "equals"
+        value: "UserInit"
+
+  actions:
+    - type: "alert"
+      priority: "high"
+      message: "Winlogon hijacking detected — {registry_value} modified in Winlogon key: {registry_data}"
+
+    - type: "log"
+
+  metadata:
+    author: "CHIPS Security Team"
+    created: "2026-05-09"
+    tags: ["persistence", "winlogon", "hijacking", "registry", "windows"]
+    references:
+      - "https://attack.mitre.org/techniques/T1547/004/"

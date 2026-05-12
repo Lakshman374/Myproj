@@ -1,0 +1,35 @@
+{
+  "monitoring": {
+    "process_interval": 6,
+    "filesystem_interval": 10,
+    "network_interval": 5,
+    "watched_paths": [
+      "C:\\Users",
+      "C:\\Windows\\System32",
+      "C:\\Windows\\SysWOW64",
+      "C:\\Program Files",
+      "C:\\Program Files (x86)"
+    ],
+    "excluded_processes": [
+      "System",
+      "Registry",
+      "smss.exe"
+    ]
+  },
+  "alerts": {
+    "max_per_hour": 100,
+    "retention_days": 30,
+    "email_notifications": true,
+    "webhook_url": "https://webhook.site/d47232ab-5a69-484a-92b2-75bac8f71d18"
+  },
+  "database": {
+    "retention_days": 90,
+    "auto_cleanup": true,
+    "max_size_mb": 500
+  },
+  "logging": {
+    "level": "INFO",
+    "max_file_size_mb": 10,
+    "backup_count": 5
+  }
+}

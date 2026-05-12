@@ -1,0 +1,48 @@
+rule:
+  id: "windows-scheduled-task-persistence"
+  name: "Windows Scheduled Task Persistence"
+  description: "Detects scheduled task creation via schtasks or registry Run keys — primary persistence mechanism on Windows, commonly used by malware to survive reboots"
+  enabled: true
+  severity: "high"
+  category: "persistence"
+
+  conditions:
+    event_type: "process_create"
+    platform:
+      - "windows"
+
+    any:
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)schtasks.+/create"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)schtasks.+/change"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)reg\\s+add.+\\\\(Run|RunOnce|RunServices)(\\\\|\\s)"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)New-ScheduledTask|Register-ScheduledTask"
+
+      - field: "process_name"
+        operator: "equals"
+        value: "at.exe"
+
+  actions:
+    - type: "alert"
+      priority: "high"
+      message: "Windows persistence mechanism detected — scheduled task or Run key modification: {process_cmdline}"
+
+    - type: "log"
+
+  metadata:
+    author: "CHIPS Security Team"
+    created: "2026-05-07"
+    tags: ["persistence", "scheduled-task", "registry", "run-key", "windows", "datacentre"]
+    references:
+      - "https://attack.mitre.org/techniques/T1053/005/"
+      - "https://attack.mitre.org/techniques/T1547/001/"

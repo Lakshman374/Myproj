@@ -1,0 +1,43 @@
+rule:
+  id: "port-scanning-detection"
+  name: "Port Scanning / Reconnaissance Detection"
+  description: "Detects use of nmap or masscan — tools commonly used for network reconnaissance in data centres"
+  enabled: true
+  severity: "high"
+  category: "reconnaissance"
+
+  conditions:
+    event_type: "process_create"
+    platform:
+      - "linux"
+      - "windows"
+
+    any:
+      - field: "process_name"
+        operator: "in"
+        value: ["nmap", "masscan", "zmap", "rustscan", "arp-scan"]
+
+      - field: "process_cmdline"
+        operator: "contains"
+        value: "nmap"
+
+      - field: "process_cmdline"
+        operator: "contains"
+        value: "masscan"
+
+  actions:
+    - type: "alert"
+      priority: "high"
+      message: "Port scanning tool detected: {process_name} — Command: {process_cmdline}"
+
+    - type: "block_process"
+      target: "process_pid"
+
+    - type: "log"
+
+  metadata:
+    author: "CHIPS Security Team"
+    created: "2025-05-06"
+    tags: ["reconnaissance", "port-scan", "nmap", "datacentre"]
+    references:
+      - "https://attack.mitre.org/techniques/T1046/"

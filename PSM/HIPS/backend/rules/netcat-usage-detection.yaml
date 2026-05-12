@@ -1,0 +1,35 @@
+rule:
+  id: netcat-usage-detection
+  name: Netcat Network Tool Detection
+  description: Detects use of netcat, a common hacking tool
+  enabled: true
+  severity: high
+  category: malware
+  conditions:
+    event_type: process_create
+    platform:
+    - linux
+    - windows
+    any:
+    - field: process_name
+      operator: in
+      value:
+      - nc
+      - netcat
+      - ncat
+      - nc.traditional
+  actions:
+  - type: alert
+    priority: high
+    message: 'Netcat detected! Process: {process_name}, Command: {process_cmdline}'
+  - type: block_process
+    target: process_pid
+  metadata:
+    author: Security Team
+    created: '2025-01-15'
+    references:
+    - https://attack.mitre.org/techniques/T1059/
+    tags:
+    - netcat
+    - network-tool
+    - hacking

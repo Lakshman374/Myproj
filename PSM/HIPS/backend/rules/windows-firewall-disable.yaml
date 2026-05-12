@@ -1,0 +1,47 @@
+rule:
+  id: "windows-firewall-disable"
+  name: "Windows Firewall Disabling Attempt"
+  description: "Detects attempts to disable Windows Firewall — attackers do this to allow inbound connections for backdoors or C2 communication"
+  enabled: true
+  severity: "high"
+  category: "defense_evasion"
+
+  conditions:
+    event_type: "process_create"
+    platform:
+      - "windows"
+
+    any:
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)netsh.+(advfirewall|firewall).+(set|disable|off)"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)netsh.+firewall.+set.+opmode.+disable"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)Set-NetFirewallProfile.+False"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)(sc|net).+(stop|delete).+(mpssvc|SharedAccess)"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)reg.+add.+CurrentControlSet\\\\Services\\\\(mpssvc|SharedAccess)"
+
+  actions:
+    - type: "alert"
+      priority: "high"
+      message: "Windows Firewall disabling detected — possible backdoor preparation: {process_cmdline}"
+
+    - type: "log"
+
+  metadata:
+    author: "CHIPS Security Team"
+    created: "2026-05-09"
+    tags: ["firewall-bypass", "defense-evasion", "windows", "datacentre"]
+    references:
+      - "https://attack.mitre.org/techniques/T1562/004/"

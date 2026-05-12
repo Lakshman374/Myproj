@@ -1,0 +1,36 @@
+rule:
+  id: "suspicious-process-detection"
+  name: "Suspicious Process Detection"
+  description: "Detects potentially malicious processes based on common indicators"
+  enabled: true
+  severity: "high"
+  category: "malware"
+
+  conditions:
+    event_type: "process_create"
+    platform:
+      - "linux"
+      - "windows"
+
+    any:
+      - field: "process_name"
+        operator: "in"
+        value: ["nc", "netcat", "ncat", "socat"]
+
+      - field: "process_cmdline"
+        operator: "contains"
+        value: "powershell -enc"
+
+  actions:
+    - type: "alert"
+      priority: "high"
+      message: "Suspicious process detected: {process_name}"
+
+    - type: "log"
+
+  metadata:
+    author: "HIPS System"
+    created: "2025-01-15"
+    tags: ["malware", "suspicious-process"]
+    references:
+      - "https://attack.mitre.org/techniques/T1059/"

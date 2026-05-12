@@ -1,0 +1,52 @@
+rule:
+  id: "windows-lateral-movement"
+  name: "Windows Lateral Movement Detection"
+  description: "Detects lateral movement techniques used to spread across the network — PsExec, WMI remote execution, SMB share enumeration, and pass-the-hash indicators"
+  enabled: true
+  severity: "high"
+  category: "lateral_movement"
+
+  conditions:
+    event_type: "process_create"
+    platform:
+      - "windows"
+
+    any:
+      - field: "process_name"
+        operator: "in"
+        value: ["psexec.exe", "psexesvc.exe", "paexec.exe", "remcom.exe"]
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)wmic.+/node:.+process.+call.+create"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)Invoke-WmiMethod.+ComputerName"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)Enter-PSSession|Invoke-Command.+-ComputerName"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)net.+use.+\\\\\\\\[0-9a-zA-Z].+ipc\\$"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)schtasks.+/s\\s+[0-9a-zA-Z]"
+
+  actions:
+    - type: "alert"
+      priority: "high"
+      message: "Lateral movement attempt detected — possible network spreading: {process_cmdline}"
+
+    - type: "log"
+
+  metadata:
+    author: "CHIPS Security Team"
+    created: "2026-05-09"
+    tags: ["lateral-movement", "psexec", "wmi", "windows", "datacentre"]
+    references:
+      - "https://attack.mitre.org/techniques/T1021/"
+      - "https://attack.mitre.org/techniques/T1047/"

@@ -1,0 +1,50 @@
+rule:
+  id: "windows-shadow-copy-deletion"
+  name: "Shadow Copy / Backup Deletion Attempt"
+  description: "Detects deletion of Windows shadow copies and backups — the first step ransomware takes before encrypting files to prevent recovery"
+  enabled: true
+  severity: "critical"
+  category: "ransomware"
+
+  conditions:
+    event_type: "process_create"
+    platform:
+      - "windows"
+
+    any:
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)vssadmin.*(delete|resize).*shadows"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)wmic.*(shadowcopy).*(delete)"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)wbadmin.*(delete|stop)"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)bcdedit.*(recoveryenabled|bootstatuspolicy)"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)Get-WmiObject.*Win32_Shadowcopy.*Delete"
+
+  actions:
+    - type: "alert"
+      priority: "critical"
+      message: "CRITICAL: Shadow copy or backup deletion detected — likely ransomware pre-encryption step: {process_cmdline}"
+
+    - type: "block_process"
+      target: "process_pid"
+
+    - type: "log"
+
+  metadata:
+    author: "CHIPS Security Team"
+    created: "2026-05-09"
+    tags: ["ransomware", "shadow-copy", "backup-deletion", "windows"]
+    references:
+      - "https://attack.mitre.org/techniques/T1490/"

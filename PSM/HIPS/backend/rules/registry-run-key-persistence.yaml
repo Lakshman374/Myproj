@@ -1,0 +1,35 @@
+rule:
+  id: "registry-run-key-persistence"
+  name: "Registry Run Key Persistence"
+  description: "Detects writes to HKLM/HKCU Run and RunOnce keys — the most common persistence technique used by malware to survive reboots"
+  enabled: true
+  severity: "high"
+  category: "persistence"
+
+  conditions:
+    event_type: "registry_change"
+    platform:
+      - "windows"
+
+    all:
+      - field: "registry_key"
+        operator: "regex"
+        value: "(?i)(HKLM|HKCU)\\\\SOFTWARE\\\\(Wow6432Node\\\\)?Microsoft\\\\Windows\\\\CurrentVersion\\\\Run(Once)?"
+
+      - field: "registry_operation"
+        operator: "in"
+        value: ["value_create", "value_modify"]
+
+  actions:
+    - type: "alert"
+      priority: "high"
+      message: "Persistence via Run key: {registry_key} | value: {registry_value} = {registry_data}"
+
+    - type: "log"
+
+  metadata:
+    author: "CHIPS Security Team"
+    created: "2026-05-09"
+    tags: ["persistence", "registry", "run-key", "windows"]
+    references:
+      - "https://attack.mitre.org/techniques/T1547/001/"

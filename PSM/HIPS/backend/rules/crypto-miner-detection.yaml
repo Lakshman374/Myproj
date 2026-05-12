@@ -1,0 +1,51 @@
+rule:
+  id: crypto-miner-detection
+  name: Cryptocurrency Miner Detection
+  description: "Detects cryptomining processes \u2014 a very common attack on data\
+    \ centre servers due to high CPU availability"
+  enabled: true
+  severity: high
+  category: 'impact '
+  conditions:
+    event_type: process_create
+    platform:
+    - linux
+    - windows
+    any:
+    - field: process_name
+      operator: in
+      value:
+      - xmrig
+      - minerd
+      - cpuminer
+      - cgminer
+      - bfgminer
+      - ethminer
+      - t-rex
+      - nbminer
+    - field: process_cmdline
+      operator: contains
+      value: stratum+tcp://
+    - field: process_cmdline
+      operator: contains
+      value: stratum+ssl://
+    - field: process_cmdline
+      operator: contains
+      value: pool.minexmr.com
+    - field: process_cmdline
+      operator: contains
+      value: xmrig
+    - field: process_cmdline
+      operator: regex
+      value: (?i)--pool|--mining-pool|--algo\s+rx
+  actions:
+  - type: alert
+    priority: high
+    message: 'Cryptocurrency miner detected! Process: {process_name}, Command: {process_cmdline}'
+  - type: block_process
+    target: process_pid
+  - type: log
+  metadata:
+    author: user
+    references: []
+    tags: []

@@ -1,0 +1,51 @@
+rule:
+  id: "windows-event-log-clearing"
+  name: "Windows Event Log Clearing"
+  description: "Detects attempts to clear Windows Event Logs — attackers do this to erase evidence of their activity after compromising a system"
+  enabled: true
+  severity: "high"
+  category: "defense_evasion"
+
+  conditions:
+    event_type: "process_create"
+    platform:
+      - "windows"
+
+    any:
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)wevtutil\\s+(cl|clear-log)"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)Clear-EventLog"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)Remove-EventLog"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)auditpol\\s+/clear"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)bcdedit.+bootstatuspolicy\\s+ignoreallfailures"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)fsutil\\s+usn\\s+deletejournal"
+
+  actions:
+    - type: "alert"
+      priority: "high"
+      message: "Windows event log clearing detected — attacker may be covering tracks: {process_cmdline}"
+
+    - type: "log"
+
+  metadata:
+    author: "CHIPS Security Team"
+    created: "2026-05-07"
+    tags: ["defense-evasion", "log-clearing", "anti-forensics", "windows", "datacentre"]
+    references:
+      - "https://attack.mitre.org/techniques/T1070/001/"

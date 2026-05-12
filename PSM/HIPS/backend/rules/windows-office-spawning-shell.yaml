@@ -1,0 +1,40 @@
+rule:
+  id: "windows-office-spawning-shell"
+  name: "Microsoft Office Spawning Shell Process"
+  description: "Detects Office applications (Word, Excel, PowerPoint, Outlook) spawning command shells or scripting engines — strong indicator of malicious macro or exploit execution"
+  enabled: true
+  severity: "critical"
+  category: "malware"
+
+  conditions:
+    event_type: "process_create"
+    platform:
+      - "windows"
+
+    all:
+      - field: "parent_name"
+        operator: "regex"
+        value: "(?i)(WINWORD|EXCEL|POWERPNT|OUTLOOK|ONENOTE|MSACCESS|MSPUB)\\.exe"
+
+    any:
+      - field: "process_name"
+        operator: "in"
+        value: ["cmd.exe", "powershell.exe", "pwsh.exe", "wscript.exe", "cscript.exe", "mshta.exe", "regsvr32.exe", "rundll32.exe", "certutil.exe"]
+
+  actions:
+    - type: "alert"
+      priority: "critical"
+      message: "CRITICAL: Office application spawned a shell — possible macro or exploit: {parent_name} → {process_name}"
+
+    - type: "block_process"
+      target: "process_pid"
+
+    - type: "log"
+
+  metadata:
+    author: "CHIPS Security Team"
+    created: "2026-05-09"
+    tags: ["office-macro", "malware", "phishing", "windows"]
+    references:
+      - "https://attack.mitre.org/techniques/T1566/001/"
+      - "https://attack.mitre.org/techniques/T1059/"

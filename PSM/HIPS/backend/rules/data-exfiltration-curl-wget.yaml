@@ -1,0 +1,40 @@
+rule:
+  id: "data-exfiltration-curl-wget"
+  name: "Suspicious Data Exfiltration via curl/wget"
+  description: "Detects curl or wget being used to upload/POST data to external hosts — potential data exfiltration from the data centre"
+  enabled: true
+  severity: "high"
+  category: "exfiltration"
+
+  conditions:
+    event_type: "process_create"
+    platform:
+      - "linux"
+      - "windows"
+
+    any:
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)curl.+(-d|--data|--data-binary|--upload-file|-T|--form|-F)"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)wget.+(--post-data|--post-file)"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: '(?i)curl.+(-X\s+POST|-X\s+PUT)'
+
+  actions:
+    - type: "alert"
+      priority: "high"
+      message: "Possible data exfiltration detected via curl/wget: {process_cmdline}"
+
+    - type: "log"
+
+  metadata:
+    author: "CHIPS Security Team"
+    created: "2025-05-06"
+    tags: ["exfiltration", "curl", "wget", "data-theft", "datacentre"]
+    references:
+      - "https://attack.mitre.org/techniques/T1048/"

@@ -1,0 +1,39 @@
+rule:
+  id: "registry-appinit-dll"
+  name: "AppInit DLL Injection via Registry"
+  description: "Detects modification of the AppInit_DLLs value — any DLL listed here is loaded into every user-mode process that loads User32.dll, making this a powerful and stealthy persistence/injection vector"
+  enabled: true
+  severity: "critical"
+  category: "persistence"
+
+  conditions:
+    event_type: "registry_change"
+    platform:
+      - "windows"
+
+    all:
+      - field: "registry_key"
+        operator: "regex"
+        value: "(?i)HKLM\\\\SOFTWARE\\\\(Wow6432Node\\\\)?Microsoft\\\\Windows NT\\\\CurrentVersion\\\\Windows"
+
+      - field: "registry_value"
+        operator: "in"
+        value: ["AppInit_DLLs", "LoadAppInit_DLLs"]
+
+      - field: "registry_operation"
+        operator: "in"
+        value: ["value_create", "value_modify"]
+
+  actions:
+    - type: "alert"
+      priority: "critical"
+      message: "CRITICAL: AppInit DLL injection — {registry_value} set to: {registry_data}"
+
+    - type: "log"
+
+  metadata:
+    author: "CHIPS Security Team"
+    created: "2026-05-09"
+    tags: ["persistence", "dll-injection", "appinit", "registry", "windows"]
+    references:
+      - "https://attack.mitre.org/techniques/T1546/010/"

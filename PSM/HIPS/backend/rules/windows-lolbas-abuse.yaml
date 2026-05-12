@@ -1,0 +1,52 @@
+rule:
+  id: "windows-lolbas-abuse"
+  name: "Living off the Land Binary Abuse (LOLBAS)"
+  description: "Detects abuse of legitimate Windows binaries to download files, execute remote code, or bypass security controls — common technique to evade antivirus"
+  enabled: true
+  severity: "high"
+  category: "defense_evasion"
+
+  conditions:
+    event_type: "process_create"
+    platform:
+      - "windows"
+
+    any:
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)certutil.+(-decode|-decodehex|-urlcache|-f)"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)mshta.+(http|vbscript|javascript)"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)regsvr32.+(/s|/u).+(http|scrobj)"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)(wscript|cscript).+http"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)rundll32.+(javascript|http|shell32|advpack)"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)odbcconf.+/a.+regsvr"
+
+  actions:
+    - type: "alert"
+      priority: "high"
+      message: "Living off the land binary abuse detected — possible defense evasion: {process_cmdline}"
+
+    - type: "log"
+
+  metadata:
+    author: "CHIPS Security Team"
+    created: "2026-05-09"
+    tags: ["lolbas", "defense-evasion", "certutil", "mshta", "windows"]
+    references:
+      - "https://attack.mitre.org/techniques/T1218/"
+      - "https://lolbas-project.github.io/"

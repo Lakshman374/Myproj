@@ -1,0 +1,33 @@
+rule:
+  id: encoded-powershell-detection
+  name: Encoded PowerShell Command Detection
+  description: Detects PowerShell with encoded commands (common malware technique)
+  enabled: true
+  severity: high
+  category: malware
+  conditions:
+    event_type: process_create
+    platform:
+    - windows
+    all:
+    - field: process_name
+      operator: contains
+      value: powershell
+    - field: process_cmdline
+      operator: regex
+      value: (?i)(?:^|\s)(?:-|/)(?:enc|encodedcommand)\b
+  actions:
+  - type: alert
+    priority: high
+    message: 'Encoded PowerShell detected: {process_cmdline}'
+  - type: block_process
+    target: process_pid
+  metadata:
+    author: Security Team
+    created: '2025-01-15'
+    references:
+    - https://attack.mitre.org/techniques/T1059/001/
+    tags:
+    - powershell
+    - malware
+    - obfuscation

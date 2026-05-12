@@ -1,0 +1,43 @@
+rule:
+  id: "suspicious-file-extensions"
+  name: "Ransomware File Extension Detection"
+  description: "Detects common ransomware file extensions being created"
+  enabled: true
+  severity: "critical"
+  category: "ransomware"
+
+  conditions:
+    event_type: "file_create"
+    platform:
+      - "linux"
+      - "windows"
+
+    any:
+      - field: "file_path"
+        operator: "regex"
+        value: "\\.(encrypted|locked|crypto|cerber|locky|wannacry|WNCRY)$"
+
+      - field: "file_path"
+        operator: "contains"
+        value: ".ENCRYPTED"
+
+      - field: "file_path"
+        operator: "contains"
+        value: ".LOCKED"
+
+  actions:
+    - type: "alert"
+      priority: "critical"
+      message: "Ransomware extension detected: {file_path}"
+
+    - type: "block_process"
+      target: "process_pid"
+
+    - type: "log"
+
+  metadata:
+    author: "Security Team"
+    created: "2025-01-15"
+    tags: ["ransomware", "file-extension", "encryption"]
+    references:
+      - "https://attack.mitre.org/techniques/T1486/"

@@ -1,0 +1,35 @@
+rule:
+  id: "registry-new-service-install"
+  name: "New Windows Service Installed via Registry"
+  description: "Detects a new subkey being created under the Services registry key — malware commonly installs itself as a service for persistent execution with SYSTEM privileges"
+  enabled: true
+  severity: "medium"
+  category: "persistence"
+
+  conditions:
+    event_type: "registry_change"
+    platform:
+      - "windows"
+
+    all:
+      - field: "registry_key"
+        operator: "regex"
+        value: "(?i)HKLM\\\\SYSTEM\\\\CurrentControlSet\\\\Services\\\\.+"
+
+      - field: "registry_operation"
+        operator: "equals"
+        value: "key_create"
+
+  actions:
+    - type: "alert"
+      priority: "medium"
+      message: "New service key created: {registry_key}"
+
+    - type: "log"
+
+  metadata:
+    author: "CHIPS Security Team"
+    created: "2026-05-09"
+    tags: ["persistence", "service-install", "registry", "windows"]
+    references:
+      - "https://attack.mitre.org/techniques/T1543/003/"

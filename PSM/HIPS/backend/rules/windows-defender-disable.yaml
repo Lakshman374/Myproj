@@ -1,0 +1,54 @@
+rule:
+  id: "windows-defender-disable"
+  name: "Windows Defender / Antivirus Disabling"
+  description: "Detects attempts to disable Windows Defender or stop security services — almost always the first move after an attacker gains access"
+  enabled: true
+  severity: "critical"
+  category: "defense_evasion"
+
+  conditions:
+    event_type: "process_create"
+    platform:
+      - "windows"
+
+    any:
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)Set-MpPreference.+DisableRealtimeMonitoring"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)Set-MpPreference.+DisableIOAVProtection"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)Add-MpPreference.+ExclusionPath"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)(sc|net).+(stop|delete).+(WinDefend|MsMpEng|SecurityHealthService)"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)reg.+add.+DisableAntiSpyware"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)reg.+add.+DisableRealtimeMonitoring"
+
+  actions:
+    - type: "alert"
+      priority: "critical"
+      message: "CRITICAL: Windows Defender disabling attempt detected: {process_cmdline}"
+
+    - type: "block_process"
+      target: "process_pid"
+
+    - type: "log"
+
+  metadata:
+    author: "CHIPS Security Team"
+    created: "2026-05-07"
+    tags: ["defense-evasion", "windows-defender", "antivirus-bypass", "windows", "datacentre"]
+    references:
+      - "https://attack.mitre.org/techniques/T1562/001/"

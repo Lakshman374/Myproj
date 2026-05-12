@@ -1,0 +1,47 @@
+rule:
+  id: "windows-uac-bypass"
+  name: "Windows UAC Bypass Attempt"
+  description: "Detects known User Account Control bypass techniques used to silently elevate privileges without triggering a UAC prompt"
+  enabled: true
+  severity: "high"
+  category: "privilege_escalation"
+
+  conditions:
+    event_type: "process_create"
+    platform:
+      - "windows"
+
+    any:
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)fodhelper|eventvwr|sdclt|slui|compmgmtlauncher"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)reg.+add.+HKCU.+Classes.+(ms-settings|mscfile)"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)DiskCleanup|cleanmgr.+autoclean"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)cmstp.+/au|/s.+inf"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)SilentCleanup|winsat.+formal"
+
+  actions:
+    - type: "alert"
+      priority: "high"
+      message: "UAC bypass attempt detected — attacker may be escalating privileges silently: {process_cmdline}"
+
+    - type: "log"
+
+  metadata:
+    author: "CHIPS Security Team"
+    created: "2026-05-09"
+    tags: ["uac-bypass", "privilege-escalation", "windows"]
+    references:
+      - "https://attack.mitre.org/techniques/T1548/002/"

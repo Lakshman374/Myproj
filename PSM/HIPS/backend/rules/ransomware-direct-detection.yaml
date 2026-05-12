@@ -1,0 +1,28 @@
+rule:
+  id: ransomware-direct-detection
+  name: Ransomware Rapid File Modification Detection
+  description: "Detects ransomware behaviour \u2014 triggered when a directory exceeds\
+    \ the rapid file change threshold"
+  enabled: false
+  severity: critical
+  category: ransomware
+  conditions:
+    event_type: ransomware_detected
+    platform:
+    - linux
+    - windows
+  actions:
+  - type: alert
+    priority: critical
+    message: 'RANSOMWARE DETECTED! {change_count} file modifications in {time_window_seconds}s
+      in directory: {directory}'
+  - type: log
+  metadata:
+    author: CHIPS Security Team
+    created: '2026-05-08'
+    references:
+    - https://attack.mitre.org/techniques/T1486/
+    tags:
+    - ransomware
+    - file-encryption
+    - critical

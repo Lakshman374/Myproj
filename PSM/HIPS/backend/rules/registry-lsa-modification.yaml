@@ -1,0 +1,36 @@
+rule:
+  id: "registry-lsa-modification"
+  name: "LSA Security Provider Modification"
+  description: "Detects changes to the LSA registry key — attackers modify Security Support Providers or Authentication Packages here to load credential-stealing DLLs on every boot"
+  enabled: true
+  severity: "critical"
+  category: "credential_access"
+
+  conditions:
+    event_type: "registry_change"
+    platform:
+      - "windows"
+
+    all:
+      - field: "registry_key"
+        operator: "regex"
+        value: "(?i)HKLM\\\\SYSTEM\\\\CurrentControlSet\\\\Control\\\\Lsa"
+
+      - field: "registry_operation"
+        operator: "in"
+        value: ["value_create", "value_modify"]
+
+  actions:
+    - type: "alert"
+      priority: "critical"
+      message: "CRITICAL: LSA key modified — possible credential-theft DLL injection: {registry_key} → {registry_value} = {registry_data}"
+
+    - type: "log"
+
+  metadata:
+    author: "CHIPS Security Team"
+    created: "2026-05-09"
+    tags: ["credential-access", "lsa", "security-provider", "registry", "windows"]
+    references:
+      - "https://attack.mitre.org/techniques/T1547/005/"
+      - "https://attack.mitre.org/techniques/T1556/002/"

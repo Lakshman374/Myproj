@@ -1,0 +1,64 @@
+rule:
+  id: "reverse-shell-detection"
+  name: "Reverse Shell Attempt Detection"
+  description: "Detects common reverse shell command patterns used by attackers to establish remote control of data centre servers"
+  enabled: true
+  severity: "critical"
+  category: "command_and_control"
+
+  conditions:
+    event_type: "process_create"
+    platform:
+      - "linux"
+      - "windows"
+
+    any:
+      - field: "process_cmdline"
+        operator: "regex"
+        value: 'bash\s+-i\s+>&?\s+/dev/tcp/'
+
+      - field: "process_cmdline"
+        operator: "contains"
+        value: "/dev/tcp/"
+
+      - field: "process_cmdline"
+        operator: "contains"
+        value: "/dev/udp/"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)python.*socket.*connect"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)perl.*socket.*connect"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)ruby.*TCPSocket"
+
+      - field: "process_cmdline"
+        operator: "contains"
+        value: "0>&1"
+
+      - field: "process_cmdline"
+        operator: "contains"
+        value: "2>&1"
+
+  actions:
+    - type: "alert"
+      priority: "critical"
+      message: "CRITICAL: Reverse shell attempt detected! Command: {process_cmdline}"
+
+    - type: "block_process"
+      target: "process_pid"
+
+    - type: "log"
+
+  metadata:
+    author: "CHIPS Security Team"
+    created: "2025-05-06"
+    tags: ["reverse-shell", "c2", "command-and-control", "critical", "datacentre"]
+    references:
+      - "https://attack.mitre.org/techniques/T1059/"
+      - "https://attack.mitre.org/techniques/T1071/"

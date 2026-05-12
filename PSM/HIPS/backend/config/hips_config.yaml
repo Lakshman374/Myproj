@@ -1,0 +1,66 @@
+api:
+  host: 0.0.0.0
+  log_level: info
+  port: 8000
+  reload: false
+database:
+  echo: false
+  path: ./hips_data.db
+  pool_size: 5
+file_monitoring:
+  detect_rapid_changes: false
+  enabled: true
+  excluded_extensions:
+  - .tmp
+  - .swp
+  - .log
+  - .db-journal
+  - .db-shm
+  - .db-wal
+  - .pyc
+  - .pid
+  - .lock
+  interval_seconds: 10
+  max_events_per_batch: 100
+  rapid_change_threshold: 30
+  rapid_change_window_seconds: 60
+  watched_paths:
+  - C:\Users
+  - C:\Windows\System32
+  - C:\Windows\SysWOW64
+  - C:\Program Files
+  - C:\Program Files (x86)
+log_retention_days: 30
+network_monitoring:
+  enabled: true
+  interval_seconds: 5
+  max_events_per_batch: 100
+  monitor_inbound: false
+  monitor_outbound: true
+  suspicious_ports:
+  - 4444
+  - 4445
+  - 5555
+  - 6666
+  - 6667
+  - 7777
+  - 8888
+  - 9999
+  - 1337
+  - 31337
+  - 12345
+  - 54321
+  - 3333
+  - 5588
+  - 7777
+  - 14433
+  - 14444
+process_monitoring:
+  enabled: true
+  interval_seconds: 6
+  max_events_per_batch: 100
+  monitor_privilege_escalation: true
+  track_children: true
+registry_monitoring:
+  enabled: true
+rules_directory: ./rules

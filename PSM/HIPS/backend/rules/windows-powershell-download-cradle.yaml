@@ -1,0 +1,60 @@
+rule:
+  id: "windows-powershell-download-cradle"
+  name: "PowerShell Download Cradle Detection"
+  description: "Detects PowerShell downloading and executing remote code — the most common malware delivery technique on Windows"
+  enabled: true
+  severity: "critical"
+  category: "malware"
+
+  conditions:
+    event_type: "process_create"
+    platform:
+      - "windows"
+
+    all:
+      - field: "process_name"
+        operator: "contains"
+        value: "powershell"
+
+    any:
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)Invoke-WebRequest|IWR\\s"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)Invoke-Expression|\\bIEX\\b"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)DownloadString|DownloadFile|DownloadData"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)Net\\.WebClient|System\\.Net\\.WebClient"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)Start-BitsTransfer.*http"
+
+      - field: "process_cmdline"
+        operator: "regex"
+        value: "(?i)\\(New-Object\\s.+\\)\\.Download"
+
+  actions:
+    - type: "alert"
+      priority: "critical"
+      message: "CRITICAL: PowerShell download cradle detected — possible malware dropper: {process_cmdline}"
+
+    - type: "block_process"
+      target: "process_pid"
+
+    - type: "log"
+
+  metadata:
+    author: "CHIPS Security Team"
+    created: "2026-05-07"
+    tags: ["powershell", "download-cradle", "malware-dropper", "windows", "datacentre"]
+    references:
+      - "https://attack.mitre.org/techniques/T1059/001/"
+      - "https://attack.mitre.org/techniques/T1105/"
